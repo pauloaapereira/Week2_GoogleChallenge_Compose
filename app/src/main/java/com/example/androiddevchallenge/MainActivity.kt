@@ -18,23 +18,24 @@ package com.example.androiddevchallenge
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material.BottomAppBar
+import androidx.compose.material.FabPosition
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieAnimationSpec
-import com.airbnb.lottie.compose.rememberLottieAnimationState
 import com.example.androiddevchallenge.ui.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
@@ -51,41 +52,53 @@ class MainActivity : AppCompatActivity() {
 // Start building your app here!
 @Composable
 fun MyApp() {
-    Surface(color = MaterialTheme.colors.background) {
-        Header(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(.2f)
-        )
+    Scaffold(
+        topBar = { Header() },
+        bottomBar = { Footer() },
+        floatingActionButton = { FooterActionButton() },
+        isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center
+    ) {
     }
 }
 
 @Composable
-fun Header(modifier: Modifier = Modifier) {
+fun Header() {
     Surface(
         color = MaterialTheme.colors.primary,
         elevation = 5.dp,
-        shape = MaterialTheme.shapes.large.copy(topEnd = CornerSize(0.dp), topStart = CornerSize(0.dp)),
+        shape = MaterialTheme.shapes.large.copy(
+            topEnd = CornerSize(0.dp),
+            topStart = CornerSize(0.dp)
+        ),
         content = {
             Box(contentAlignment = Alignment.Center) {
-                HeaderLogo()
+                Text(text = "Timer", style = MaterialTheme.typography.h3)
             }
         },
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(.2f)
     )
 }
 
 @Composable
-fun HeaderLogo() {
-    val animationSpec = remember { LottieAnimationSpec.RawRes(R.raw.heart_beating) }
-    val animationState = rememberLottieAnimationState(autoPlay = true, repeatCount = Integer.MAX_VALUE)
+fun Footer() {
+    BottomAppBar(
+        elevation = 5.dp,
+        cutoutShape = MaterialTheme.shapes.large
+    ) {
+    }
+}
 
-    Text(text = "HeartCounter", style = MaterialTheme.typography.h3)
-    LottieAnimation(
-        animationSpec,
-        Modifier.requiredSize(48.dp),
-        animationState
-    )
+@Composable
+fun FooterActionButton() {
+    FloatingActionButton(onClick = { /*TODO*/ }) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_start),
+            contentDescription = "Start Timer"
+        )
+    }
 }
 
 @Preview("Light Theme", widthDp = 360, heightDp = 640)
