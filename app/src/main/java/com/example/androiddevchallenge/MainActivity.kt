@@ -17,22 +17,31 @@ package com.example.androiddevchallenge
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.FabPosition
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,51 +61,111 @@ class MainActivity : AppCompatActivity() {
 // Start building your app here!
 @Composable
 fun MyApp() {
+    var isPlaying by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
-        topBar = { Header() },
-        bottomBar = { Footer() },
-        floatingActionButton = { FooterActionButton() },
-        isFloatingActionButtonDocked = true,
-        floatingActionButtonPosition = FabPosition.Center
-    ) {
-    }
-}
-
-@Composable
-fun Header() {
-    Surface(
-        color = MaterialTheme.colors.primary,
-        elevation = 5.dp,
-        shape = MaterialTheme.shapes.large.copy(
-            topEnd = CornerSize(0.dp),
-            topStart = CornerSize(0.dp)
-        ),
-        content = {
-            Box(contentAlignment = Alignment.Center) {
-                Text(text = "Timer", style = MaterialTheme.typography.h3)
-            }
+        topBar = {
+            TimerHeader(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(.25f)
+            )
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(.2f)
-    )
-}
-
-@Composable
-fun Footer() {
-    BottomAppBar(
-        elevation = 5.dp,
-        cutoutShape = MaterialTheme.shapes.large
+        bottomBar = {
+            TimerActions(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(.25f),
+                isPlaying = isPlaying,
+                onStartClick = {
+                    isPlaying = !isPlaying
+                },
+                onRestartClick = {
+                }
+            )
+        },
+        backgroundColor = MaterialTheme.colors.primary
     ) {
+        Body(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.5f)
+        )
     }
 }
 
 @Composable
-fun FooterActionButton() {
-    FloatingActionButton(onClick = { /*TODO*/ }) {
+fun TimerHeader(modifier: Modifier = Modifier) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Text(text = "Timer", style = MaterialTheme.typography.h2, color = Color.White)
+    }
+}
+
+@Composable
+fun Body(modifier: Modifier = Modifier) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Row {
+            TimeSpinner(range = 0..23)
+            TimeSpinner(range = 0..59)
+            TimeSpinner(range = 0..59)
+        }
+    }
+}
+
+@Composable
+fun TimeSpinner(selected: Int = 0, range: IntRange) {
+    var selectedItem by rememberSaveable { mutableStateOf(0) }
+
+    LazyColumn(modifier = Modifier.wrapContentSize()) {
+        items(range.toList()) { number ->
+            Text(
+                text = if (number < 10) "0$number" else number.toString(),
+                style = MaterialTheme.typography.h2,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun TimerActions(
+    modifier: Modifier = Modifier,
+    isPlaying: Boolean = false,
+    onStartClick: () -> Unit,
+    onRestartClick: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ActionButton(
+            res = if (!isPlaying) R.drawable.ic_start else R.drawable.ic_pause,
+            contentDescription = "Start Timer",
+            onClick = onStartClick
+        )
+        ActionButton(
+            res = R.drawable.ic_restart,
+            contentDescription = "Restart Timer",
+            onClick = onRestartClick
+        )
+    }
+}
+
+@Composable
+fun ActionButton(
+    @DrawableRes res: Int,
+    contentDescription: String? = null,
+    onClick: () -> Unit = {}
+) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = Modifier.size(64.dp)
+    ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_start),
-            contentDescription = "Start Timer"
+            painter = painterResource(id = res),
+            contentDescription = contentDescription,
+            colorFilter = ColorFilter.tint(MaterialTheme.colors.onPrimary)
         )
     }
 }
