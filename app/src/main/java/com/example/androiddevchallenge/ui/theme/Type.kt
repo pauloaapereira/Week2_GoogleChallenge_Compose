@@ -16,28 +16,35 @@
 package com.example.androiddevchallenge.ui.theme
 
 import androidx.compose.material.Typography
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import com.example.androiddevchallenge.R
 
-// Set of Material typography styles to start with
+private val AppFontFamily = FontFamily(
+    fonts = listOf(
+        Font(
+            resId = R.font.indie_flower,
+            weight = FontWeight.Normal,
+            style = FontStyle.Normal
+        )
+    )
+)
+
+private val DefaultTypography = Typography()
 val typography = Typography(
-    body1 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
-    )
-        /* Other default text styles to override
-    button = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.W500,
-        fontSize = 14.sp
-    ),
-    caption = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp
-    )
-    */
+    h1 = DefaultTypography.h1.copy(fontFamily = AppFontFamily),
+    h2 = DefaultTypography.h2.copy(fontFamily = AppFontFamily),
+    h3 = DefaultTypography.h3.copy(fontFamily = AppFontFamily),
+    h4 = DefaultTypography.h4.copy(fontFamily = AppFontFamily),
+    h5 = DefaultTypography.h5.copy(fontFamily = AppFontFamily),
+    h6 = DefaultTypography.h6.copy(fontFamily = AppFontFamily),
+    subtitle1 = DefaultTypography.subtitle1.copy(fontFamily = AppFontFamily),
+    subtitle2 = DefaultTypography.subtitle2.copy(fontFamily = AppFontFamily),
+    body1 = DefaultTypography.body1.copy(fontFamily = AppFontFamily),
+    body2 = DefaultTypography.body2.copy(fontFamily = AppFontFamily),
+    button = DefaultTypography.button.copy(fontFamily = AppFontFamily),
+    caption = DefaultTypography.caption.copy(fontFamily = AppFontFamily),
+    overline = DefaultTypography.overline.copy(fontFamily = AppFontFamily)
 )
