@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.FloatingActionButton
@@ -45,6 +44,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.androiddevchallenge.ui.snapFlingBehavior
 import com.example.androiddevchallenge.ui.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
@@ -116,7 +116,10 @@ fun Body(modifier: Modifier = Modifier) {
 fun TimeSpinner(selected: Int = 0, range: IntRange) {
     var selectedItem by rememberSaveable { mutableStateOf(0) }
 
-    LazyColumn(modifier = Modifier.wrapContentSize()) {
+    LazyColumn(
+        modifier = Modifier.size(64.dp),
+        flingBehavior = snapFlingBehavior()
+    ) {
         items(range.toList()) { number ->
             Text(
                 text = if (number < 10) "0$number" else number.toString(),

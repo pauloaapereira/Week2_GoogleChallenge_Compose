@@ -75,6 +75,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0'
     implementation "androidx.compose.runtime:runtime:1.0.0-beta01"
     implementation "androidx.compose.runtime:runtime-livedata:1.0.0-beta01"
+    implementation "androidx.compose.animation:animation:1.0.0-beta01"
+    implementation "androidx.compose.foundation:foundation:1.0.0-beta01"
 
     testImplementation 'junit:junit:4.13.2'
 
