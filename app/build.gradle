@@ -83,5 +83,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
 
-    implementation "com.airbnb.android:lottie-compose:1.0.0-alpha07-SNAPSHOT"
+    implementation "dev.chrisbanes.accompanist:accompanist-insets:0.6.1"
 }
