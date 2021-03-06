@@ -18,8 +18,20 @@ package com.example.androiddevchallenge.utils
 import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import java.util.concurrent.TimeUnit
 
 fun View.hideKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
     imm?.hideSoftInputFromWindow(windowToken, 0)
+}
+
+fun Context.toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+
+fun getMillis(hours: Long, minutes: Long, seconds: Long): Long {
+    return TimeUnit.HOURS.toMillis(hours) + TimeUnit.MINUTES.toMillis(minutes) + TimeUnit.SECONDS.toMillis(seconds)
+}
+
+fun getTimeFromMillis(millis: Long, time: (Long, Long, Long) -> Unit) {
+    time(((millis / (1000*60*60)) % 24), ((millis / (1000*60)) % 60), (millis / 1000) % 60)
 }

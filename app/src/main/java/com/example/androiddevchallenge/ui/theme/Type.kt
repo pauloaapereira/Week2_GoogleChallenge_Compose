@@ -25,7 +25,7 @@ import com.example.androiddevchallenge.R
 private val AppFontFamily = FontFamily(
     fonts = listOf(
         Font(
-            resId = R.font.indie_flower,
+            resId = R.font.quicksand,
             weight = FontWeight.Normal,
             style = FontStyle.Normal
         )

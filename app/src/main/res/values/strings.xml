@@ -10,4 +10,6 @@
       the License.
       -->
     <string name="app_name">AndroidDevChallenge</string>
+    <string name="time_not_selected">You must select the time first.</string>
+    <string name="timer_not_started">The timer has not started yet.</string>
 </resources>
