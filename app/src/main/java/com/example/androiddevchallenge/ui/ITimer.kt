@@ -50,6 +50,7 @@ interface ITimer {
         seconds = 0
         initialMillis = 0
     }
+
     fun start(coroutineScope: CoroutineScope, onFinish: () -> Unit = {}) {
         coroutineScope.launch {
             while ((hours != 0L || minutes != 0L || seconds != 0L) && isPlaying) {

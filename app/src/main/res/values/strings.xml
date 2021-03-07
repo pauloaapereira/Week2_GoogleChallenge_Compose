@@ -11,7 +11,6 @@
       -->
     <string name="app_name">AndroidDevChallenge</string>
     <string name="time_not_selected">You must select the time first.</string>
-    <string name="timer_not_started">The timer has not started yet.</string>
     <string name="hours">Hours</string>
     <string name="minutes">Minutes</string>
     <string name="seconds">Seconds</string>
@@ -20,4 +19,6 @@
     <string name="timer">Timer</string>
     <string name="timer_finished">The timer has finished.</string>
     <string name="change_volume">Change volume</string>
+    <string name="sound_off">Sound off</string>
+    <string name="sound_on">Sound on</string>
 </resources>

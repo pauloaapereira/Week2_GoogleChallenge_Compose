@@ -146,6 +146,11 @@ fun Timer() {
                         if (!timerController.isSoundOn && alarmTone.isPlaying) {
                             alarmTone.stop()
                         }
+                        context.toast(
+                            if (timerController.isSoundOn) context.getString(R.string.sound_on) else context.getString(
+                                R.string.sound_off
+                            )
+                        )
                     },
                     onStartClick = { timerController.isPlaying = !timerController.isPlaying },
                     onRestartClick = {
