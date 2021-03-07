@@ -33,5 +33,5 @@ fun getMillis(hours: Long, minutes: Long, seconds: Long): Long {
 }
 
 fun getTimeFromMillis(millis: Long, time: (Long, Long, Long) -> Unit) {
-    time(((millis / (1000*60*60)) % 24), ((millis / (1000*60)) % 60), (millis / 1000) % 60)
+    time(((millis / (1000 * 60 * 60)) % 24), ((millis / (1000 * 60)) % 60), (millis / 1000) % 60)
 }

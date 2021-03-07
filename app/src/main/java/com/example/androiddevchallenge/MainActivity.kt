@@ -15,13 +15,19 @@
  */
 package com.example.androiddevchallenge
 
+import android.media.RingtoneManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -47,13 +53,17 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -62,14 +72,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.androiddevchallenge.ui.ITimer
+import com.example.androiddevchallenge.ui.ITimer.Companion.HOURS_RANGE
+import com.example.androiddevchallenge.ui.ITimer.Companion.MINUTES_RANGE
+import com.example.androiddevchallenge.ui.ITimer.Companion.SECONDS_RANGE
 import com.example.androiddevchallenge.ui.theme.MyTheme
-import com.example.androiddevchallenge.utils.getMillis
-import com.example.androiddevchallenge.utils.getTimeFromMillis
 import com.example.androiddevchallenge.utils.hideKeyboard
 import com.example.androiddevchallenge.utils.toast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     @ExperimentalAnimationApi
@@ -77,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                MyApp()
+                Timer()
             }
         }
     }
@@ -86,110 +95,141 @@ class MainActivity : AppCompatActivity() {
 // Start building your app here!
 @ExperimentalAnimationApi
 @Composable
-fun MyApp() {
-    var isPlaying by rememberSaveable { mutableStateOf(false) }
-    var isReady by rememberSaveable { mutableStateOf(false) }
-
-    var hours by rememberSaveable { mutableStateOf(0L) }
-    var minutes by rememberSaveable { mutableStateOf(0L) }
-    var seconds by rememberSaveable { mutableStateOf(0L) }
-
-    var progress by rememberSaveable { mutableStateOf(0f) }
-    var initialMillis by rememberSaveable { mutableStateOf(0L) }
-
-    fun isTimerReady() = hours > 0 || minutes > 0 || seconds > 0
-    fun isFinished() = isPlaying && hours == 0L && minutes == 0L && seconds == 0L
-
-    fun restartTimer() {
-        isPlaying = false
-        isReady = false
-        hours = 0
-        minutes = 0
-        seconds = 0
-        initialMillis = 0
-    }
-
+fun Timer() {
+    val context = LocalContext.current
     val composableScope = rememberCoroutineScope()
-
-    if (isPlaying) {
-        composableScope.launch(Dispatchers.Main) {
-            while ((hours != 0L || minutes != 0L || seconds != 0L) && isPlaying) {
-                val millis = getMillis(hours, minutes, seconds)
-
-                if (initialMillis == 0L) {
-                    initialMillis = millis
-                }
-
-                progress = (millis * 100f / initialMillis) / 100f
-
-                delay(1000)
-                getTimeFromMillis(millis - 1000L) { h, m, s ->
-                    if (isPlaying) {
-                        hours = h
-                        minutes = m
-                        seconds = s
-                    }
-                }
-            }
-
-            if (isFinished()) {
-                progress = 0f
-                delay(1000)
-                restartTimer()
-            }
-        }
+    val alarmTone by remember {
+        mutableStateOf(
+            RingtoneManager.getRingtone(
+                context,
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            )
+        )
     }
 
-    Scaffold(
-        topBar = {
-            TimerHeader()
-        },
-        bottomBar = {
-            TimerActions(
-                isPlaying = isPlaying,
-                isReady = isReady,
-                onStartClick = {
-                    isPlaying = !isPlaying
-                },
-                onRestartClick = { restartTimer() }
-            )
-        },
-        backgroundColor = MaterialTheme.colors.primary
-    ) {
-        Timer(
-            hours = hours,
-            minutes = minutes,
-            seconds = seconds,
-            progress = progress,
-            isPlaying = isPlaying
-        ) { newHours, newMinutes, newSeconds ->
-            if (newHours != hours)
-                hours = newHours
-            if (newMinutes != minutes)
-                minutes = newMinutes
-            if (newSeconds != seconds)
-                seconds = newSeconds
+    val timerController = object : ITimer {
+        override var isPlaying by rememberSaveable { mutableStateOf(false) }
+        override var isReady by rememberSaveable { mutableStateOf(false) }
+        override var isSoundOn by rememberSaveable { mutableStateOf(true) }
+        override var hours by rememberSaveable { mutableStateOf(0L) }
+        override var minutes by rememberSaveable { mutableStateOf(0L) }
+        override var seconds by rememberSaveable { mutableStateOf(0L) }
+        override var progress by rememberSaveable { mutableStateOf(0f) }
+        override var initialMillis by rememberSaveable { mutableStateOf(0L) }
+    }
 
-            isReady = isTimerReady()
+    if (timerController.isPlaying) {
+        val finishedLabel = stringResource(R.string.timer_finished)
+
+        timerController.start(
+            coroutineScope = composableScope,
+            onFinish = {
+                context.toast(finishedLabel)
+                if (timerController.isSoundOn)
+                    alarmTone.play()
+            }
+        )
+    }
+
+    Box(contentAlignment = Alignment.Center) {
+        Scaffold(
+            topBar = {
+                Header(isPlaying = timerController.isPlaying)
+            },
+            bottomBar = {
+                Actions(
+                    isPlaying = timerController.isPlaying,
+                    isReady = timerController.isReady,
+                    isSoundOn = timerController.isSoundOn,
+                    onSoundClick = {
+                        timerController.isSoundOn = !timerController.isSoundOn
+                        if (!timerController.isSoundOn && alarmTone.isPlaying) {
+                            alarmTone.stop()
+                        }
+                    },
+                    onStartClick = { timerController.isPlaying = !timerController.isPlaying },
+                    onRestartClick = {
+                        timerController.restart()
+                        if (alarmTone.isPlaying)
+                            alarmTone.stop()
+                    }
+                )
+            },
+            backgroundColor = MaterialTheme.colors.primary
+        ) {
+            Body(
+                hours = timerController.hours,
+                minutes = timerController.minutes,
+                seconds = timerController.seconds,
+                progress = timerController.progress,
+                isPlaying = timerController.isPlaying
+            ) { newHours, newMinutes, newSeconds ->
+                if (newHours != timerController.hours)
+                    timerController.hours = newHours
+                if (newMinutes != timerController.minutes)
+                    timerController.minutes = newMinutes
+                if (newSeconds != timerController.seconds)
+                    timerController.seconds = newSeconds
+
+                timerController.isReady = timerController.isReadyToPlay()
+            }
         }
+        BackgroundShadow(isPlaying = timerController.isPlaying)
     }
 }
 
 @Composable
-fun TimerHeader(modifier: Modifier = Modifier) {
+fun BackgroundShadow(isPlaying: Boolean) {
+    val transition = rememberInfiniteTransition()
+    val shadow = transition.animateFloat(
+        initialValue = 5f,
+        targetValue = 15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        )
+    ).value.dp
+
+    val modifier: Modifier = if (isPlaying) Modifier.shadow(shadow) else Modifier.shadow(5.dp)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight(.98f)
+    )
+}
+
+@Composable
+fun Header(isPlaying: Boolean) {
+    val transition = rememberInfiniteTransition()
+
+    val scaling by transition.animateFloat(
+        initialValue = .95f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    val modifier: Modifier = if (isPlaying) Modifier.scale(scaling) else Modifier
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight(.25f),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Timer", style = MaterialTheme.typography.h2, color = Color.White)
+        Text(
+            text = stringResource(R.string.timer),
+            style = MaterialTheme.typography.h2,
+            color = Color.White
+        )
     }
 }
 
 @ExperimentalAnimationApi
 @Composable
-fun Timer(
+fun Body(
     hours: Long,
     minutes: Long,
     seconds: Long,
@@ -205,29 +245,7 @@ fun Timer(
         contentAlignment = Alignment.Center
     ) {
         TimerProgress(isVisible = isPlaying, progress = progress)
-        Row {
-            TimeField(
-                isPlaying = isPlaying,
-                time = hours,
-                label = "Hours",
-                timeRange = 0..23,
-                onValueChange = { onTimerValuesSet(it, minutes, seconds) }
-            )
-            TimeField(
-                isPlaying = isPlaying,
-                time = minutes,
-                label = "Minutes",
-                timeRange = 0..59,
-                onValueChange = { onTimerValuesSet(hours, it, seconds) }
-            )
-            TimeField(
-                isPlaying = isPlaying,
-                time = seconds,
-                label = "Seconds",
-                timeRange = 0..59,
-                onValueChange = { onTimerValuesSet(hours, minutes, it) }
-            )
-        }
+        TimerFields(hours, minutes, seconds, isPlaying, onTimerValuesSet)
     }
 }
 
@@ -256,6 +274,53 @@ fun TimerProgress(modifier: Modifier = Modifier, isVisible: Boolean, progress: F
                 progress = animatedProgress
             )
         }
+    }
+}
+
+@Composable
+fun TimerFields(
+    hours: Long,
+    minutes: Long,
+    seconds: Long,
+    isPlaying: Boolean,
+    onTimerValuesSet: (Long, Long, Long) -> Unit = { _, _, _ -> }
+) {
+
+    val transition = rememberInfiniteTransition()
+
+    val scaling by transition.animateFloat(
+        initialValue = .9f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    val modifier: Modifier = if (isPlaying) Modifier.scale(scaling) else Modifier
+
+    Row(modifier = modifier) {
+        TimeField(
+            isPlaying = isPlaying,
+            time = hours,
+            label = stringResource(R.string.hours),
+            timeRange = HOURS_RANGE,
+            onValueChange = { onTimerValuesSet(it, minutes, seconds) }
+        )
+        TimeField(
+            isPlaying = isPlaying,
+            time = minutes,
+            label = stringResource(R.string.minutes),
+            timeRange = MINUTES_RANGE,
+            onValueChange = { onTimerValuesSet(hours, it, seconds) }
+        )
+        TimeField(
+            isPlaying = isPlaying,
+            time = seconds,
+            label = stringResource(R.string.seconds),
+            timeRange = SECONDS_RANGE,
+            onValueChange = { onTimerValuesSet(hours, minutes, it) }
+        )
     }
 }
 
@@ -300,7 +365,8 @@ fun TimeField(
         colors = TextFieldDefaults.outlinedTextFieldColors(
             focusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.disabled),
             focusedLabelColor = MaterialTheme.colors.onSurface.copy(ContentAlpha.medium),
-            cursorColor = Color.White
+            cursorColor = Color.White,
+            disabledTextColor = Color.White
         ),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number,
@@ -316,16 +382,17 @@ fun TimeField(
 }
 
 @Composable
-fun TimerActions(
+fun Actions(
     modifier: Modifier = Modifier,
+    isSoundOn: Boolean = true,
     isPlaying: Boolean = false,
     isReady: Boolean = false,
+    onSoundClick: () -> Unit,
     onStartClick: () -> Unit,
     onRestartClick: () -> Unit
 ) {
     val context = LocalContext.current
     val timeNotSelectedMessage = stringResource(id = R.string.time_not_selected)
-    val timerNotStartedMessage = stringResource(id = R.string.timer_not_started)
 
     Row(
         modifier = modifier
@@ -335,14 +402,19 @@ fun TimerActions(
         verticalAlignment = Alignment.CenterVertically
     ) {
         ActionButton(
+            res = if (!isSoundOn) R.drawable.ic_sound_off else R.drawable.ic_sound_on,
+            contentDescription = stringResource(R.string.change_volume),
+            onClick = { onSoundClick() }
+        )
+        ActionButton(
             res = if (!isPlaying) R.drawable.ic_start else R.drawable.ic_pause,
-            contentDescription = "Start Timer",
+            contentDescription = stringResource(R.string.start_timer),
             onClick = { if (isReady) onStartClick() else context.toast(timeNotSelectedMessage) }
         )
         ActionButton(
             res = R.drawable.ic_restart,
-            contentDescription = "Restart Timer",
-            onClick = { if (isReady) onRestartClick() else context.toast(timerNotStartedMessage) }
+            contentDescription = stringResource(R.string.restart_timer),
+            onClick = { onRestartClick() }
         )
     }
 }
@@ -356,6 +428,7 @@ fun ActionButton(
     FloatingActionButton(
         onClick = onClick,
         modifier = Modifier.size(64.dp),
+        shape = RectangleShape
     ) {
         Image(
             painter = painterResource(id = res),
@@ -370,7 +443,7 @@ fun ActionButton(
 @Composable
 fun LightPreview() {
     MyTheme {
-        MyApp()
+        Timer()
     }
 }
 
@@ -379,6 +452,6 @@ fun LightPreview() {
 @Composable
 fun DarkPreview() {
     MyTheme(darkTheme = true) {
-        MyApp()
+        Timer()
     }
 }
