@@ -1,18 +1,19 @@
-# Put title of your app here
+# JetTimer
 
 <!--- Replace <OWNER> with your Github Username and <REPOSITORY> with the name of your repository. -->
 <!--- You can find both of these in the url bar when you open your repository in github. -->
-![Workflow result](https://github.com/<OWNER>/<REPOSITORY>/workflows/Check/badge.svg)
+![Workflow result](https://github.com/pauloaapereira/Week2_GoogleChallenge_Compose/workflows/Check/badge.svg)
 
 
 ## :scroll: Description
 <!--- Describe your app in one or two sentences -->
-
+This is a simple countdown timer application, developed according to the 2nd Week Android Dev Challenges on Jetpack Compose.
 
 ## :bulb: Motivation and Context
 <!--- Optionally point readers to interesting parts of your submission. -->
 <!--- What are you especially proud of? -->
-
+I love Android development, honestly.
+Since Jetpack Compose is a totally different way of thinking in terms of UI building, I decided to take these weekly Android Dev Challenges, as a way to enter in its world.
 
 ## :camera_flash: Screenshots
 <!-- You can add more screenshots here if you like -->
